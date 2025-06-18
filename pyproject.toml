@@ -4,7 +4,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "traceattrs"
-version = "1.0.0"
+version = "1.0.1"
 description = "A lightweight Python library to automatically track changes to object attributes over time. Designed to monitor state changes without boilerplate or intrusive instrumentation."
 readme = "README.md"
 authors = [{ name = "Alen Joe Antony", email = "alenjantony@gmail.com" }]
