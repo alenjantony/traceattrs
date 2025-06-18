@@ -1,0 +1,12 @@
+# Changelog
+
+## [1.0.0] - 2024-06-18
+### Added
+- Initial release of traceattrs
+- Track changes to any attribute of class instances
+- Support for regular classes, dataclasses and classes with __slots__
+- Supports inheritance: tracks attribute changes in both base and derived classes
+- Access attribute history via dot notation
+- Includes history management (clear, get all)
+- Pure Python, no dependencies
+- Includes tests and documentation
