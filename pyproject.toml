@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools >= 77.0.3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "traceattrs"
+version = "1.0.0"
+description = "A lightweight Python library to automatically track changes to object attributes over time. Designed to monitor state changes without boilerplate or intrusive instrumentation."
+readme = "README.md"
+authors = [{ name = "Alen Joe Antony", email = "alenjantony@gmail.com" }]
+requires-python = ">=3.9"
+license = "MIT"
+license-files = ["LICENSE.md"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Developers",
+    "Development Status :: 5 - Production/Stable",
+    "Topic :: Software Development :: Libraries :: Python Modules"
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/alenjantony/traceattrs"
+Issues = "https://github.com/alenjantony/traceattrs/issues"

@@ -1,0 +1,11 @@
+# IDE configs
+.vscode
+
+# Python cache and build files
+__pycache__/
+*.egg-info/
+build/
+dist/
+
+# Pytest Cache
+.pytest_cache/
