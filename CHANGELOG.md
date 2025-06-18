@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.0.1] - 2024-06-18
+### Changed
+- Switched build backend from setuptools to flit for modern, PEP 517-compliant builds and installation using only pyproject.toml
+- **Motivation**: setuptools does not fully support installation using only pyproject.toml and still requires setup.py or setup.cfg for metadata
+
 ## [1.0.0] - 2024-06-18
 ### Added
 - Initial release of traceattrs

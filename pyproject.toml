@@ -1,16 +1,16 @@
 [build-system]
-requires = ["setuptools >= 77.0.3"]
-build-backend = "setuptools.build_meta"
+requires = ["flit_core >= 3.12.0, <4"]
+build-backend = "flit_core.buildapi"
 
 [project]
 name = "traceattrs"
-version = "1.0.0"
+version = "1.0.1"
 description = "A lightweight Python library to automatically track changes to object attributes over time. Designed to monitor state changes without boilerplate or intrusive instrumentation."
 readme = "README.md"
 authors = [{ name = "Alen Joe Antony", email = "alenjantony@gmail.com" }]
 requires-python = ">=3.9"
 license = "MIT"
-license-files = ["LICENSE.md"]
+license-files = ["LICENSE"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
