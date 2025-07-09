@@ -7,6 +7,7 @@ It supports regular classes, dataclasses, and classes with __slots__, and expose
 
 from collections import defaultdict
 from typing import Optional
+import copy
 
 
 # Maps instance id to attribute history
@@ -37,27 +38,58 @@ class HistoryAccessor:
 
 
 def traceattrs(cls: type) -> type:
-    """Class decorator to track attribute changes on instances."""
+    """Decorator to track attribute changes on class instances."""
     original_setattr = getattr(cls, '__setattr__', object.__setattr__)
     original_init = getattr(cls, '__init__', lambda self: None)
 
     def custom_init(self, *args, **kwargs):
-        # Initialize history for this instance
+        """Initialize instance history."""
         _instance_history[id(self)] = defaultdict(list)
         original_init(self, *args, **kwargs)
 
     def custom_setattr(self, name: str, value: any) -> None:
-        """Intercepts attribute assignment to record old and new values in the instance's history."""
-        obj_id = id(self)
-        old_value = getattr(self, name, None)
-        _instance_history[obj_id][name].append((old_value, value))
+        """Record attribute changes."""
+        history = _instance_history.setdefault(id(self), defaultdict(list))
+        history[name].append((getattr(self, name, None), value))
         original_setattr(self, name, value)
 
+    def custom_copy(self):
+        """Support copy.copy with history and slots."""
+        cls = self.__class__
+        result = cls.__new__(cls)
+        if hasattr(self, '__dict__'):
+            result.__dict__.update(self.__dict__)
+        slots = getattr(self, '__slots__', ())
+        for slot in slots:
+            if hasattr(self, slot):
+                setattr(result, slot, getattr(self, slot))
+        original_history = _instance_history.get(id(self), defaultdict(list))
+        _instance_history[id(result)] = copy.deepcopy(original_history)
+        return result
+
+    def custom_deepcopy(self, memo):
+        """Support copy.deepcopy with history and slots."""
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memo[id(self)] = result
+        if hasattr(self, '__dict__'):
+            for k, v in self.__dict__.items():
+                setattr(result, copy.deepcopy(k, memo), copy.deepcopy(v, memo))
+        slots = getattr(self, '__slots__', ())
+        for slot in slots:
+            if hasattr(self, slot):
+                setattr(result, slot, copy.deepcopy(getattr(self, slot), memo))
+        original_history = _instance_history.get(id(self), defaultdict(list))
+        _instance_history[id(result)] = copy.deepcopy(original_history, memo)
+        return result
+    
     def get_history(self) -> HistoryAccessor:
-        """Returns a HistoryAccessor for accessing this instance's attribute change history."""
+        """Return history accessor for this instance."""
         return HistoryAccessor(_instance_history[id(self)])
 
     cls.__init__ = custom_init
     cls.__setattr__ = custom_setattr
+    cls.__copy__ = custom_copy
+    cls.__deepcopy__ = custom_deepcopy
     cls.history = property(get_history)
     return cls
