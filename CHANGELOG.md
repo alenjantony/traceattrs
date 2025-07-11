@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.0] - 2025-07-09
+### Added
+- Support for `copy` and `deepcopy` operations, including all combinations
+- Extended copy/deepcopy support to classes using `__slots__`
+- Attribute history is now tracked independently for each copied object
+
 ## [1.0.1] - 2025-06-18
 ### Changed
 - Fixed typo in the changelog where the year was incorrecly listed as 2024 instead of 2025

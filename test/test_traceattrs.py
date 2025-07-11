@@ -4,6 +4,7 @@ Covers regular classes, dataclasses, slotted classes, inheritance, and history m
 """
 
 import pytest
+import copy
 from dataclasses import dataclass
 
 from traceattrs import traceattrs
@@ -178,3 +179,167 @@ def test_sequential_object_history():
     assert obj2.history.x == [(None, 30), (30, 200)], "obj2 x history tracked correctly"
     assert obj1.history.y == [(None, 20), (20, 300)], "obj1 y history tracked correctly"
     assert obj2.history.y == [(None, 40), (40, 400)], "obj2 y history tracked correctly"
+
+
+def test_copy_history():
+    """Test that copying objects preserves independent history tracking."""
+    obj1 = RegularClass(5, 6)
+    obj1.x = 50
+    obj1.y = 60
+    obj2 = copy.copy(obj1)
+    # Mutate copy
+    obj2.x = 500
+    # Original should not be affected by changes to copy
+    assert obj1.history.x == [(None, 5), (5, 50)], "Original x history after copy"
+    assert obj1.history.y == [(None, 6), (6, 60)], "Original y history after copy"
+    # Copy should have its own independent history
+    assert obj2.history.x == [(None, 5), (5, 50), (50, 500)], "Shallow copy x history"
+    assert obj2.history.y == [(None, 6), (6, 60)], "Shallow copy y history"
+
+
+def test_deepcopy_history():
+    """Test that deep copying objects preserves independent history tracking."""
+    obj1 = RegularClass(5, 6)
+    obj1.x = 50
+    obj1.y = 60
+    obj2 = copy.deepcopy(obj1)
+    # Mutate deep copy
+    obj2.y = 600
+    # Original should not be affected by changes to deep copy
+    assert obj1.history.x == [(None, 5), (5, 50)], "Original x history after deepcopy"
+    assert obj1.history.y == [(None, 6), (6, 60)], "Original y history after deepcopy"
+    # Deep copy should have its own independent history
+    assert obj2.history.x == [(None, 5), (5, 50)], "Deep copy x history"
+    assert obj2.history.y == [(None, 6), (6, 60), (60, 600)], "Deep copy y history"
+
+
+def test_copy_after_copy():
+    """Test that copying an object after another copy preserves independent history tracking."""
+    obj1 = RegularClass(1, 2)
+    obj1.x = 10
+    obj2 = copy.copy(obj1)
+    obj3 = copy.copy(obj2)
+    obj3.x = 99
+    assert obj1.history.x == [(None, 1), (1, 10)], "Original x history after two copies"
+    assert obj2.history.x == [(None, 1), (1, 10)], "First copy x history after two copies"
+    assert obj3.history.x == [(None, 1), (1, 10), (10, 99)], "Second copy x history after two copies"
+
+
+def test_deepcopy_after_deepcopy():
+    """Test that deep copying an object after another deepcopy preserves independent history tracking."""
+    obj1 = RegularClass(1, 2)
+    obj1.x = 10
+    obj2 = copy.deepcopy(obj1)
+    obj3 = copy.deepcopy(obj2)
+    obj3.x = 77
+    assert obj1.history.x == [(None, 1), (1, 10)], "Original x history after two deepcopies"
+    assert obj2.history.x == [(None, 1), (1, 10)], "First deepcopy x history after two deepcopies"
+    assert obj3.history.x == [(None, 1), (1, 10), (10, 77)], "Second deepcopy x history after two deepcopies"
+
+
+def test_copy_after_deepcopy():
+    """Test that copying an object after a deepcopy preserves independent history tracking."""
+    obj1 = RegularClass(1, 2)
+    obj1.x = 10
+    obj2 = copy.deepcopy(obj1)
+    obj3 = copy.copy(obj2)
+    obj3.x = 55
+    assert obj1.history.x == [(None, 1), (1, 10)], "Original x history after deepcopy then copy"
+    assert obj2.history.x == [(None, 1), (1, 10)], "Deepcopy x history after deepcopy then copy"
+    assert obj3.history.x == [(None, 1), (1, 10), (10, 55)], "Copy x history after deepcopy then copy"
+
+
+def test_deepcopy_after_copy():
+    """Test that deep copying an object after a copy preserves independent history tracking."""
+    obj1 = RegularClass(1, 2)
+    obj1.x = 10
+    obj2 = copy.copy(obj1)
+    obj3 = copy.deepcopy(obj2)
+    obj3.x = 42
+    assert obj1.history.x == [(None, 1), (1, 10)], "Original x history after copy then deepcopy"
+    assert obj2.history.x == [(None, 1), (1, 10)], "Copy x history after copy then deepcopy"
+    assert obj3.history.x == [(None, 1), (1, 10), (10, 42)], "Deepcopy x history after copy then deepcopy"
+
+
+def test_copy_history_slotted():
+    """Test copying a slotted dataclass preserves independent history tracking."""
+    obj1 = SlottedDataClass(1, 2)
+    obj1.x = 10
+    obj2 = copy.copy(obj1)
+    obj2.x = 20
+    assert obj1.history.x == [(None, 1), (1, 10)], "Original x history after copy (slotted)"
+    assert obj2.history.x == [(None, 1), (1, 10), (10, 20)], "Copy x history after copy (slotted)"
+
+
+def test_deepcopy_history_slotted():
+    """Test deep copying a slotted dataclass preserves independent history tracking."""
+    obj1 = SlottedDataClass(1, 2)
+    obj1.x = 10
+    obj2 = copy.deepcopy(obj1)
+    obj2.x = 20
+    assert obj1.history.x == [(None, 1), (1, 10)], "Original x history after deepcopy (slotted)"
+    assert obj2.history.x == [(None, 1), (1, 10), (10, 20)], "Deepcopy x history after deepcopy (slotted)"
+
+
+def test_copy_after_copy_slotted():
+    """Test copying a slotted dataclass after another copy preserves independent history tracking."""
+    obj1 = SlottedDataClass(1, 2)
+    obj1.x = 10
+    obj2 = copy.copy(obj1)
+    obj3 = copy.copy(obj2)
+    obj3.x = 99
+    assert obj1.history.x == [(None, 1), (1, 10)], "Original x history after two copies (slotted)"
+    assert obj2.history.x == [(None, 1), (1, 10)], "First copy x history after two copies (slotted)"
+    assert obj3.history.x == [(None, 1), (1, 10), (10, 99)], "Second copy x history after two copies (slotted)"
+
+
+def test_deepcopy_after_deepcopy_slotted():
+    """Test deep copying a slotted dataclass after another deepcopy preserves independent history tracking."""
+    obj1 = SlottedDataClass(1, 2)
+    obj1.x = 10
+    obj2 = copy.deepcopy(obj1)
+    obj3 = copy.deepcopy(obj2)
+    obj3.x = 77
+    assert obj1.history.x == [(None, 1), (1, 10)], "Original x history after two deepcopies (slotted)"
+    assert obj2.history.x == [(None, 1), (1, 10)], "First deepcopy x history after two deepcopies (slotted)"
+    assert obj3.history.x == [(None, 1), (1, 10), (10, 77)], "Second deepcopy x history after two deepcopies (slotted)"
+
+
+def test_copy_after_deepcopy_slotted():
+    """Test copying a slotted dataclass after a deepcopy preserves independent history tracking."""
+    obj1 = SlottedDataClass(1, 2)
+    obj1.x = 10
+    obj2 = copy.deepcopy(obj1)
+    obj3 = copy.copy(obj2)
+    obj3.x = 55
+    assert obj1.history.x == [(None, 1), (1, 10)], "Original x history after deepcopy then copy (slotted)"
+    assert obj2.history.x == [(None, 1), (1, 10)], "Deepcopy x history after deepcopy then copy (slotted)"
+    assert obj3.history.x == [(None, 1), (1, 10), (10, 55)], "Copy x history after deepcopy then copy (slotted)"
+
+
+def test_deepcopy_after_copy_slotted():
+    """Test deep copying a slotted dataclass after a copy preserves independent history tracking."""
+    obj1 = SlottedDataClass(1, 2)
+    obj1.x = 10
+    obj2 = copy.copy(obj1)
+    obj3 = copy.deepcopy(obj2)
+    obj3.x = 42
+    assert obj1.history.x == [(None, 1), (1, 10)], "Original x history after copy then deepcopy (slotted)"
+    assert obj2.history.x == [(None, 1), (1, 10)], "Copy x history after copy then deepcopy (slotted)"
+    assert obj3.history.x == [(None, 1), (1, 10), (10, 42)], "Deepcopy x history after copy then deepcopy (slotted)"
+
+
+def test_multiple_copies():
+    """Test multiple sequential copies preserve correct and independent history tracking."""
+    obj1 = RegularClass(10, 0)
+    obj1.x = 20
+
+    obj2 = copy.copy(obj1)
+    obj2.x = 99
+
+    obj3 = copy.copy(obj2)
+    obj3.x = 123
+
+    assert obj1.history.x == [(None, 10), (10, 20)], "Original x history after copy-deepcopy chain"
+    assert obj2.history.x == [(None, 10), (10, 20), (20, 99)], "Copy x history after copy-deepcopy chain"
+    assert obj3.history.x == [(None, 10), (10, 20), (20, 99), (99, 123)], "Deepcopy x history after copy"
